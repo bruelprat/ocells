@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clau d'identificació d'ocells</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 2rem; background-color: #f4f4f4; }
+    h1, h2 { color: #2c3e50; }
+    select, button { margin-top: 1rem; padding: 0.5rem; font-size: 1rem; }
+    .step { margin-top: 2rem; }
+    .option { margin: 1rem 0; }
+    .group-img, .result-img { max-width: 200px; display: block; margin-top: 1rem; }
+    .hidden { display: none; }
+    .group-select-grid { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 2rem; }
+    .group-item { background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 0 5px rgba(0,0,0,0.1); text-align: center; cursor: pointer; flex: 1 0 200px; }
+  </style>
+</head>
+<body>
+  <h1>Clau d'identificació d'ocells paleàrtics</h1>
+
+  <!-- PAS 1: Tipus d'hàbitat -->
+  <div id="habitat-select">
+    <h2>1. Quin tipus d'ocell vols identificar?</h2>
+    <button onclick="selectHabitat('aquatic')">Ocells aquàtics</button>
+    <button onclick="selectHabitat('terrestre')">Ocells no aquàtics</button>
+  </div>
+
+  <!-- PAS 2: Grups d'ocells dins l'hàbitat -->
+  <div id="group-select-section" class="hidden">
+    <h2>2. Tria un grup d'ocells:</h2>
+    <div class="group-select-grid" id="group-grid"></div>
+  </div>
+
+  <!-- PAS 3: Clau dicotòmica -->
+  <div id="clau-container"></div>
+
+  <script>
+    const clauContainer = document.getElementById('clau-container');
+    const habitatSelect = document.getElementById('habitat-select');
+    const groupSection = document.getElementById('group-select-section');
+    const groupGrid = document.getElementById('group-grid');
+
+    const grups = {
+      aquatic: [
+        { id: 'territs', nom: 'Territs (Calidris)', imatge: 'IMATGE_TERRITS.jpg' },
+        { id: 'calàbries', nom: 'Calàbries (gaviidae)', imatge: 'IMATGE_CALABRIES.jpg' },
+		{ id: 'cabussons', nom: 'Cabussons (podicipedidae)', imatge: 'IMATGE_CABUSSONS.jpg' },
+		{ id: 'baldrigues', nom: 'Baldrigues i petrells (procellariiformes)', imatge: 'IMATGE_BALDRIGUES.jpg' },
+		{ id: 'oques', nom: 'Oques', imatge: 'IMATGE_OQUES.jpg' }
+      ],
+      terrestre: [
+        { id: 'mosquiters', nom: 'Mosquiters (Phylloscopus)', imatge: 'IMATGE_MOSQUITERS.jpg' },
+        { id: 'pinsans', nom: 'Pinsans i fringíl·lids', imatge: 'IMATGE_PINSANS.jpg' }
+      ]
+    };
+
+    const claus = {
+	  calàbries: [
+  {
+    text: "1. Quin d’aquests trets presenta l’ocell?",
+    options: [
+      { label: "Té un bony frontal prominent al bec", next: 1 },
+      { label: "No té bony visible al front", next: 2 }
+    ]
+  },
+  {
+    text: "2. Quin aspecte presenta el plomatge i el bec?",
+    options: [
+      { label: "Hivern amb contrast fort entre dors fosc i parts inferiors blanques; a l'estiu, bec fosc i massís", result: "Gavia immer (Calàbria grossa)", img: "IMG_GAVIA_IMMER.jpg" },
+      { label: "Hivern amb poc contrast i coloració més clara; a l'estiu, bec llarg i molt pàl·lid", result: "Gavia adamsii (Calàbria becblanca)", img: "IMG_GAVIA_ADAMSII.jpg" }
+    ]
+  },
+  {
+    text: "3. Com és el bec i l’aspecte general del cap?",
+    options: [
+      { label: "Bec clarament inclinat cap amunt, amb una franja vermellosa o coloració blanca molt extensa al cap", result: "Gavia stellata (Calàbria petita)", img: "IMG_GAVIA_STELLATA.jpg" },
+      { label: "Bec recte o horitzontal, sense inclinació marcada", next: 3 }
+    ]
+  },
+  {
+    text: "4. Quina d’aquestes descripcions encaixa millor?",
+    options: [
+      { label: "Cap de color uniforme, sense collaret, flancs i esquena amb franges grises regulars", result: "Gavia arctica (Calàbria agulla)", img: "IMG_GAVIA_ARCTICA.jpg" },
+      { label: "Franges blanques estretes al coll, collaret fosc visible i bec més prim", result: "Gavia pacifica (Calàbria del Pacífic)", img: "IMG_GAVIA_PACIFICA.jpg" }
+    ]
+  }
+],
+
+      territs: [
+        {
+          text: "1. Ocell clarament més gran que els altres (semblant a un correlimos tridàctil)",
+          options: [
+            { label: "Sí", result: "Calidris canutus (Territ gros)", img: "IMG_CALIDRIS_CANUTUS.jpg" },
+            { label: "No", next: 1 }
+          ]
+        },
+        {
+          text: "2. Part inferior blanca i uniforme?",
+          options: [
+            { label: "Sí", next: 2 },
+            { label: "No", next: 5 }
+          ]
+        },
+        {
+          text: "3. Dits amb 3 dits evidents, sense dit posterior?",
+          options: [
+            { label: "Sí", result: "Calidris alba (Territ de tres dits)", img: "IMG_CALIDRIS_ALBA.jpg" },
+            { label: "No", next: 3 }
+          ]
+        },
+        {
+          text: "4. Plomatge fosc fins i tot a l’hivern, hàbitat rocallós?",
+          options: [
+            { label: "Sí", result: "Calidris maritima (Territ fosc)", img: "IMG_CALIDRIS_MARITIMA.jpg" },
+            { label: "No", result: "Calidris fuscicollis (Territ cuablanc)", img: "IMG_CALIDRIS_FUSCICOLLIS.jpg" }
+          ]
+        },
+        {
+          text: "5. Bec llarg i corbat cap avall, potes llargues?",
+          options: [
+            { label: "Sí", result: "Calidris ferruginea (Territ becllarg)", img: "IMG_CALIDRIS_FERRUGINEA.jpg" },
+            { label: "No", next: 6 }
+          ]
+        },
+        {
+          text: "6. Potes groguenques, cos molt petit?",
+          options: [
+            { label: "Sí", result: "Calidris minuta (Territ menut)", img: "IMG_CALIDRIS_MINUTA.jpg" },
+            { label: "No", result: "Calidris alpina (Territ variant)", img: "IMG_CALIDRIS_ALPINA.jpg" }
+          ]
+        }
+      ],
+      mosquiters: [
+        {
+          text: "1. Supercili evident blanc o groc clar?",
+          options: [
+            { label: "Sí", next: 1 },
+            { label: "No", result: "Phylloscopus collybita (Mosquiter comú)", img: "IMG_PHYLLOSCOPUS_COLLYBITA.jpg" }
+          ]
+        },
+        {
+          text: "2. Dues barres alars blanques ben marcades?",
+          options: [
+            { label: "Sí", result: "Phylloscopus inornatus (Mosquiter de doble ratlla)", img: "IMG_PHYLLOSCOPUS_INORNATUS.jpg" },
+            { label: "No", result: "Phylloscopus trochiloides (Mosquiter verdós)", img: "IMG_PHYLLOSCOPUS_TROCHILOIDES.jpg" }
+          ]
+        }
+      ]
+    };
+
+    function selectHabitat(habitat) {
+      habitatSelect.classList.add('hidden');
+      groupSection.classList.remove('hidden');
+      groupGrid.innerHTML = '';
+
+      grups[habitat].forEach(grup => {
+        const div = document.createElement('div');
+        div.className = 'group-item';
+        div.innerHTML = `<strong>${grup.nom}</strong><br><img class="group-img" src="${grup.imatge}" alt="${grup.nom}">`;
+        div.onclick = () => showClau(grup.id);
+        groupGrid.appendChild(div);
+      });
+    }
+
+    function showClau(group) {
+      groupSection.classList.add('hidden');
+      clauContainer.innerHTML = '';
+
+      if (!group || !claus[group]) return;
+      let currentStep = 0;
+
+      const showStep = (stepIndex) => {
+        const step = claus[group][stepIndex];
+        clauContainer.innerHTML = `<div class="step">
+          <h2>${step.text}</h2>
+          ${step.options.map((opt, i) => `<div class="option">
+            <button onclick="handleOption(${stepIndex}, ${i}, '${group}')">${opt.label}</button>
+          </div>`).join('')}
+        </div>`;
+      };
+
+      window.handleOption = (stepIndex, optionIndex, group) => {
+        const option = claus[group][stepIndex].options[optionIndex];
+        if (option.result) {
+          clauContainer.innerHTML = `<div class="step">
+            <h2>Resultat: ${option.result}</h2>
+            <!-- Inserir imatge aquí -->
+            <img class="result-img" src="${option.img}" alt="${option.result}">
+          </div>`;
+        } else if (option.next !== undefined) {
+          showStep(option.next);
+        }
+      };
+
+      showStep(currentStep);
+    }
+  </script>
+</body>
+</html>
