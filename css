@@ -1,0 +1,28 @@
+.habitat-grid {
+  display: flex;
+  gap: 2rem;
+  margin-top: 1rem;
+  justify-content: center;
+}
+
+.habitat-item {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 0 6px rgba(0,0,0,0.1);
+  cursor: pointer;
+  text-align: center;
+  width: 180px;
+  transition: transform 0.2s ease;
+}
+
+.habitat-item:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+}
+
+.habitat-img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+}
